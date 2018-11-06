@@ -57,18 +57,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private static final int REQUEST_READ_CONTACTS = 0;
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    private UserLoginTask mAuthTask = null;
-
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -157,10 +145,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
-
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
@@ -198,8 +182,32 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(this, email, password);
-            mAuthTask.execute((Void) null);
+            final Context mContext = this;
+            JSONObject json = new JSONObject();
+            try {
+                json.put(getString(R.string.login_username), email);
+                json.put(getString(R.string.login_password), password);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                    (Request.Method.POST, getString(R.string.login_url), json, new Response.Listener<JSONObject>() {
+
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            Intent intent = new Intent(mContext, ScrollingActivity.class);
+                            startActivity(intent);
+                        }
+                    }, new Response.ErrorListener() {
+
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            showProgress(false);
+                            mPasswordView.setError(getString(R.string.error_incorrect_password));
+                            mPasswordView.requestFocus();
+                        }
+                    });
+            MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
         }
     }
 
@@ -299,72 +307,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         int ADDRESS = 0;
         int IS_PRIMARY = 1;
-    }
-
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private Context mContext;
-
-        private final String mEmail;
-        private final String mPassword;
-
-        UserLoginTask(Context context, String email, String password) {
-            mContext = context;
-            mEmail = email;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            JSONObject json = new JSONObject();
-            try {
-                json.put(getString(R.string.login_username), mEmail);
-                json.put(getString(R.string.login_password), mPassword);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.POST, getString(R.string.login_url), json, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Intent intent = new Intent(mContext, ScrollingActivity.class);
-                        startActivity(intent);
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Intent intent = new Intent(mContext, ScrollingActivity.class);
-                        startActivity(intent);
-                    }
-                });
-            MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
     }
 }
 
