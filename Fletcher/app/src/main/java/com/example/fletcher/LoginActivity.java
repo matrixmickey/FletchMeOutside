@@ -328,7 +328,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 e.printStackTrace();
             }
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.POST, getString(R.string.login_url), new JSONObject() {  }, new Response.Listener<JSONObject>() {
+                (Request.Method.POST, getString(R.string.login_url), json, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
