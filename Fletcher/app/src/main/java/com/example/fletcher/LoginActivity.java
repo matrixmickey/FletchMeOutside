@@ -115,7 +115,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         @Override
                         public void onResponse(JSONObject response) {
-                            Intent intent = new Intent(mContext, ScrollingActivity.class);
+                            Intent intent = new Intent(mContext, MainActivity.class);
                             startActivity(intent);
                         }
                     }, new Response.ErrorListener() {
