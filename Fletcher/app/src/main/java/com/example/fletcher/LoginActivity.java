@@ -32,6 +32,8 @@ import org.json.JSONObject;
  */
 public class LoginActivity extends AppCompatActivity {
 
+    public static final String PROFILE_PICTURE = "com.example.fletcher.PROFILE_PICTURE";
+
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -116,6 +118,13 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(JSONObject response) {
                             Intent intent = new Intent(mContext, MainActivity.class);
+                            try {
+                                intent.putExtra(PROFILE_PICTURE, response.getString("imageUrl"));
+                            }
+                            catch (JSONException e)
+                            {
+                                e.printStackTrace();
+                            }
                             startActivity(intent);
                         }
                     }, new Response.ErrorListener() {

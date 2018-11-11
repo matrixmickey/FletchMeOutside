@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -26,6 +27,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.example.fletcher.dummy.DummyContent;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -60,6 +62,15 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        // Get the Intent that started this activity and extract the string
+        Intent intent = getIntent();
+        String profilePicture = intent.getStringExtra(LoginActivity.PROFILE_PICTURE);
+
+        View picview = navigationView.getHeaderView(0);
+
+        ImageView imageView = picview.findViewById(R.id.imageView2);
+        Picasso.with(this).load(getString(R.string.base_url) + profilePicture).resize(0, 16).into(imageView);
 
 //        final Context mContext = this;
 //        JSONObject json = new JSONObject();

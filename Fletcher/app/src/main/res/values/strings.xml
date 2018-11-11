@@ -114,4 +114,5 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="feed_url">https://bfsharingapp.bluefletch.com/feed</string>
     <string name="with_credentials">withCredentials</string>
+    <string name="base_url">https://bfsharingapp.bluefletch.com</string>
 </resources>
