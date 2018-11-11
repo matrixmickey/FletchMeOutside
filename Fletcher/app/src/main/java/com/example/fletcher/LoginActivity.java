@@ -33,6 +33,8 @@ import org.json.JSONObject;
 public class LoginActivity extends AppCompatActivity {
 
     public static final String PROFILE_PICTURE = "com.example.fletcher.PROFILE_PICTURE";
+    public static final String USERNAME = "com.example.fletcher.USERNAME";
+    public static final String CREATED_DATE = "com.example.fletcher.CREATED_DATE";
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -120,6 +122,8 @@ public class LoginActivity extends AppCompatActivity {
                             Intent intent = new Intent(mContext, MainActivity.class);
                             try {
                                 intent.putExtra(PROFILE_PICTURE, response.getString("imageUrl"));
+                                intent.putExtra(USERNAME, response.getString("username"));
+                                intent.putExtra(CREATED_DATE, response.getString("createdDate"));
                             }
                             catch (JSONException e)
                             {

@@ -20,6 +20,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -71,6 +72,11 @@ public class MainActivity extends AppCompatActivity
 
         ImageView imageView = picview.findViewById(R.id.imageView2);
         Picasso.with(this).load(getString(R.string.base_url) + profilePicture).into(imageView);
+
+        ((TextView)picview.findViewById(R.id.textView2)).setText(intent.getStringExtra(LoginActivity.USERNAME));
+        String createDate = intent.getStringExtra(LoginActivity.CREATED_DATE);
+        int createDateTimeCharachter = createDate.indexOf('T');
+        ((TextView)picview.findViewById(R.id.textView)).setText("User since " + createDate.substring(0, createDateTimeCharachter));
 
 //        final Context mContext = this;
 //        JSONObject json = new JSONObject();
