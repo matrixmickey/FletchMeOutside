@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity
         View picview = navigationView.getHeaderView(0);
 
         ImageView imageView = picview.findViewById(R.id.imageView2);
-        Picasso.with(this).load(getString(R.string.base_url) + profilePicture).resize(0, 16).into(imageView);
+        Picasso.with(this).load(getString(R.string.base_url) + profilePicture).into(imageView);
 
 //        final Context mContext = this;
 //        JSONObject json = new JSONObject();
