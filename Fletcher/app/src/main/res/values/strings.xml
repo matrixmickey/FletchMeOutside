@@ -115,4 +115,7 @@
     <string name="feed_url">https://bfsharingapp.bluefletch.com/feed</string>
     <string name="with_credentials">withCredentials</string>
     <string name="base_url">https://bfsharingapp.bluefletch.com</string>
+    <string name="create_post_hint">Type post here</string>
+    <string name="submit_post">Sumbit</string>
+    <string name="create_post_label">Create Post</string>
 </resources>
