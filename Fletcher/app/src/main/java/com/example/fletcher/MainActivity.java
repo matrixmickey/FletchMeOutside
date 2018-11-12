@@ -79,10 +79,17 @@ public class MainActivity extends AppCompatActivity
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         final Context mContext = this;
+
+        // Get the Intent that started this activity and extract the string
+        Intent intent = getIntent();
+
+        mUsername = intent.getStringExtra(LoginActivity.USERNAME);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
             Intent intent = new Intent(mContext, CreatePostActivity.class);
+            intent.putExtra(LoginActivity.USERNAME, mUsername);
             startActivity(intent);
             }
         });
@@ -96,16 +103,12 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = getNavigationView();
         navigationView.setNavigationItemSelectedListener(this);
 
-        // Get the Intent that started this activity and extract the string
-        Intent intent = getIntent();
         String profilePicture = intent.getStringExtra(LoginActivity.PROFILE_PICTURE);
 
         ImageView imageView = getProfilePictureHolder();
         Picasso.with(this).load(getString(R.string.base_url) + profilePicture).into(imageView);
 
         View picview = getPicView();
-
-        mUsername = intent.getStringExtra(LoginActivity.USERNAME);
 
         ((TextView)picview.findViewById(R.id.textView2)).setText(mUsername);
         String createDate = intent.getStringExtra(LoginActivity.CREATED_DATE);
@@ -149,7 +152,7 @@ public class MainActivity extends AppCompatActivity
             }
 
             // specify an adapter (see also next example)
-            recyclerView.setAdapter(new MyPostRecyclerViewAdapter(posts));
+            recyclerView.setAdapter(new MyPostRecyclerViewAdapter(posts, mUsername));
         }
         catch (JSONException e)
         {

@@ -14,6 +14,7 @@ import com.example.fletcher.dummy.DummyContent;
 import com.squareup.picasso.Picasso;
 
 public class ViewCommentsActivity extends AppCompatActivity {
+    public static final String Post_ID = "com.example.fletcher.Post_ID";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +22,7 @@ public class ViewCommentsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_comments);
 
         Intent intent = getIntent();
-        Post post = (Post)intent.getSerializableExtra(MyPostRecyclerViewAdapter.POST);
+        final Post post = (Post)intent.getSerializableExtra(MyPostRecyclerViewAdapter.POST);
 
         Picasso.with(this).load(post.image).into((ImageView)findViewById(R.id.linearLayout).findViewById(R.id.imageView3));
         ((TextView)findViewById(R.id.linearLayout).findViewById(R.id.usernameText)).setText(post.username);
@@ -45,6 +46,8 @@ public class ViewCommentsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, CreateCommentActivity.class);
+                intent.putExtra(LoginActivity.USERNAME, getIntent().getStringExtra(LoginActivity.USERNAME));
+                intent.putExtra(Post_ID, post.id);
                 startActivity(intent);
             }
         });
