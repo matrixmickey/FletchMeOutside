@@ -1,7 +1,6 @@
 package com.example.fletcher;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,43 +17,32 @@ import java.util.List;
  * {@link RecyclerView.Adapter} that can display a {@link Post}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class MyPostRecyclerViewAdapter extends RecyclerView.Adapter<MyPostRecyclerViewAdapter.ViewHolder> {
+public class MyCommentRecyclerViewAdapter extends RecyclerView.Adapter<MyCommentRecyclerViewAdapter.ViewHolder> {
 
-    public static final String POST = "com.example.fletcher.POST";
+    private final Comment[] mValues;
 
-    private final List<Post> mValues;
-
-    public MyPostRecyclerViewAdapter(List<Post> items) {
+    public MyCommentRecyclerViewAdapter(Comment[] items) {
         mValues = items;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_post, parent, false);
+                .inflate(R.layout.fragment_comment, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.mItem = mValues.get(position);
-        holder.mUsernameView.setText(mValues.get(position).username);
-        holder.mContentView.setText(mValues.get(position).content);
+        holder.mItem = mValues[position];
+        holder.mUsernameView.setText(mValues[position].username);
+        holder.mContentView.setText(mValues[position].content);
         Picasso.with(holder.mContext).load(holder.mContext.getString(R.string.base_url) + holder.mItem.image).into(holder.mImageView);
-        holder.mCommentsButton.setText(holder.mItem.comments.length + " Comment" + (holder.mItem.comments.length == 1 ? "" : "s"));
-        holder.mCommentsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(holder.mContext, ViewCommentsActivity.class);
-                intent.putExtra(POST, holder.mItem);
-                holder.mContext.startActivity(intent);
-            }
-        });
     }
 
     @Override
     public int getItemCount() {
-        return mValues.size();
+        return mValues.length;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -64,7 +52,7 @@ public class MyPostRecyclerViewAdapter extends RecyclerView.Adapter<MyPostRecycl
         public final ImageView mImageView;
         public final Button mCommentsButton;
         public final Context mContext;
-        public Post mItem;
+        public Comment mItem;
 
         public ViewHolder(View view) {
             super(view);

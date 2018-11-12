@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -19,22 +20,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * A login screen that offers login via email/password.
@@ -44,6 +39,7 @@ public class LoginActivity extends AppCompatActivity {
     public static final String PROFILE_PICTURE = "com.example.fletcher.PROFILE_PICTURE";
     public static final String USERNAME = "com.example.fletcher.USERNAME";
     public static final String CREATED_DATE = "com.example.fletcher.CREATED_DATE";
+    public static final String FEED_DATA = "com.example.fletcher.FEED_DATA";
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -116,40 +112,6 @@ public class LoginActivity extends AppCompatActivity {
             // perform the user login attempt.
             showProgress(true);
 
-//            try {
-//                URL url = new URL(getString(R.string.login_url));
-//                Map<String, Object> params = new LinkedHashMap<>();
-//                params.put(getString(R.string.login_username), email);
-//                params.put(getString(R.string.login_password), password);
-//
-//                StringBuilder postData = new StringBuilder();
-//                for (Map.Entry<String, Object> param : params.entrySet()) {
-//                    if (postData.length() != 0) postData.append('&');
-//                    postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-//                    postData.append('=');
-//                    postData.append(URLEncoder.encode(String.valueOf(param.getValue()), "UTF-8"));
-//                }
-//                byte[] postDataBytes = postData.toString().getBytes("UTF-8");
-//
-//                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//                conn.setRequestMethod("POST");
-//                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-//                conn.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
-//                conn.
-//                conn.setDoOutput(true);
-//                conn.getOutputStream().write(postDataBytes);
-//
-//                Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-//
-//                for (int c; (c = in.read()) >= 0; )
-//                    System.out.print((char) c);
-//
-//            }
-//            catch (Exception e)
-//            {
-//                e.printStackTrace();
-//            }
-
             final Context mContext = this;
             JSONObject json = new JSONObject();
             try {
@@ -163,17 +125,34 @@ public class LoginActivity extends AppCompatActivity {
 
                         @Override
                         public void onResponse(JSONObject response) {
-                            Intent intent = new Intent(mContext, MainActivity.class);
+                            final Intent intent = new Intent(mContext, MainActivity.class);
                             try {
                                 intent.putExtra(PROFILE_PICTURE, response.getString("imageUrl"));
                                 intent.putExtra(USERNAME, response.getString("username"));
                                 intent.putExtra(CREATED_DATE, response.getString("createdDate"));
+
+                                StringRequest jsonObjectRequest = new StringRequest
+                                        (Request.Method.GET, getString(R.string.feed_url), new Response.Listener<String>() {
+
+                                            @Override
+                                            public void onResponse(String response) {
+                                                intent.putExtra(FEED_DATA, response);
+                                                startActivity(intent);
+                                            }
+                                        }, new Response.ErrorListener() {
+
+                                            @Override
+                                            public void onErrorResponse(VolleyError error) {
+                                                Intent intent = new Intent(mContext, MainActivity.class);
+                                                startActivity(intent);
+                                            }
+                                        });
+                                MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
                             }
                             catch (JSONException e)
                             {
                                 e.printStackTrace();
                             }
-                            startActivity(intent);
                         }
                     }, new Response.ErrorListener() {
 

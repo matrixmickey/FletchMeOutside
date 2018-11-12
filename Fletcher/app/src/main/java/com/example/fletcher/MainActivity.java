@@ -26,14 +26,19 @@ import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.example.fletcher.dummy.DummyContent;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
@@ -79,41 +84,6 @@ public class MainActivity extends AppCompatActivity
         int createDateTimeCharachter = createDate.indexOf('T');
         ((TextView)picview.findViewById(R.id.textView)).setText("User since " + createDate.substring(0, createDateTimeCharachter));
 
-//        final Context mContext = this;
-//        JSONObject json = new JSONObject();
-//        try {
-//            json.put(getString(R.string.with_credentials), "true");
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-//                (Request.Method.GET, getString(R.string.feed_url), json, new Response.Listener<JSONObject>() {
-//
-//                    @Override
-//                    public void onResponse(JSONObject response) {
-//                        Intent intent = new Intent(mContext, MainActivity.class);
-//                        startActivity(intent);
-//                    }
-//                }, new Response.ErrorListener() {
-//
-//                    @Override
-//                    public void onErrorResponse(VolleyError error) {
-//                        Intent intent = new Intent(mContext, MainActivity.class);
-//                        startActivity(intent);
-//                    }
-//                }) {
-//                    @Override
-//                    public Map<String, String> getHeaders() throws AuthFailureError {
-//                        Map<String, String> params = super.getHeaders();
-//                        params.put(
-//                                "Authorization",
-//                                String.format("Basic %s", Base64.encodeToString(
-//                                        String.format("%s:%s", "username", "password").getBytes(), Base64.DEFAULT)));
-//                        return params;
-//                    }
-//        };
-//        MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
-
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
 
         // use this setting to improve performance if you know that changes
@@ -123,8 +93,40 @@ public class MainActivity extends AppCompatActivity
         // use a linear layout manager
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // specify an adapter (see also next example)
-        recyclerView.setAdapter(new MyPostRecyclerViewAdapter(DummyContent.ITEMS));
+        try {
+            String feedData = intent.getStringExtra(LoginActivity.FEED_DATA);
+            JSONArray jsonArray = new JSONArray(feedData);
+            List<Post> posts = new ArrayList<Post>();
+            for (int i = 0; i < jsonArray.length(); i++)
+            {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                String postID = jsonObject.getString("_id");
+                String postText = jsonObject.getString("postText");
+                JSONObject postUser = jsonObject.getJSONObject("postUser");
+                String postUserImage = postUser.getString("imageUrl");
+                String postUsername = postUser.getString("username");
+                JSONArray commentsArray = jsonObject.getJSONArray("comments");
+                Comment[] comments = new Comment[commentsArray.length()];
+                for (int j = 0; j < commentsArray.length(); j++)
+                {
+                    JSONObject comment = commentsArray.getJSONObject(j);
+                    String commentID = comment.getString("_id");
+                    String commentText = comment.getString("commentText");
+                    JSONObject commentUser = comment.getJSONObject("commentUser");
+                    String commentUserImage = commentUser.getString("imageUrl");
+                    String commentUsername = commentUser.getString("username");
+                    comments[j] = new Comment(commentID, commentText, commentUserImage, commentUsername);
+                }
+                posts.add(new Post(postID, postText, postUserImage, postUsername, comments));
+            }
+
+            // specify an adapter (see also next example)
+            recyclerView.setAdapter(new MyPostRecyclerViewAdapter(posts));
+        }
+        catch (JSONException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     @Override
