@@ -2,14 +2,21 @@ package com.example.fletcher;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -23,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -36,13 +44,31 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+
+    File photoFile;
+    String mUsername;
+
+    private final String twoHyphens = "--";
+    private final String lineEnd = "\r\n";
+    private final String boundary = "apiclient-" + System.currentTimeMillis();
+    private final String mimeType = "multipart/form-data;boundary=" + boundary;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,19 +93,21 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = getNavigationView();
         navigationView.setNavigationItemSelectedListener(this);
 
         // Get the Intent that started this activity and extract the string
         Intent intent = getIntent();
         String profilePicture = intent.getStringExtra(LoginActivity.PROFILE_PICTURE);
 
-        View picview = navigationView.getHeaderView(0);
-
-        ImageView imageView = picview.findViewById(R.id.imageView2);
+        ImageView imageView = getProfilePictureHolder();
         Picasso.with(this).load(getString(R.string.base_url) + profilePicture).into(imageView);
 
-        ((TextView)picview.findViewById(R.id.textView2)).setText(intent.getStringExtra(LoginActivity.USERNAME));
+        View picview = getPicView();
+
+        mUsername = intent.getStringExtra(LoginActivity.USERNAME);
+
+        ((TextView)picview.findViewById(R.id.textView2)).setText(mUsername);
         String createDate = intent.getStringExtra(LoginActivity.CREATED_DATE);
         int createDateTimeCharachter = createDate.indexOf('T');
         ((TextView)picview.findViewById(R.id.textView)).setText("User since " + createDate.substring(0, createDateTimeCharachter));
@@ -169,20 +197,129 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+            PackageManager packageManager = getPackageManager();
+            if (packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY))
+            {
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (takePictureIntent.resolveActivity(packageManager) != null) {// Create the File where the photo should go
+                    photoFile = null;
+                    try {
+                        photoFile = createImageFile();
+                    } catch (IOException ex) {
+                        // Error occurred while creating the File
+                    }
+                    // Continue only if the File was successfully created
+                    if (photoFile != null) {
+                        try {
+                            Uri photoURI = FileProvider.getUriForFile(this,
+                                    "com.example.fletcher.fileprovider",
+                                    photoFile);
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                        }
+                        catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            DataOutputStream dos = new DataOutputStream(bos);
+
+            byte[] multipartBody = new byte[0];
+            try {
+                buildPart(dos, Files.readAllBytes(photoFile.toPath()), photoFile.getName());
+                // send multipart form data necesssary after file data
+                dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+                // pass to multipart body
+                multipartBody = bos.toByteArray();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            MultipartRequest multipartRequest = new MultipartRequest(getString(R.string.set_profile_pic_url) + "/" + mUsername +"/profilepic", null, mimeType, multipartBody, new Response.Listener<NetworkResponse>() {
+                @Override
+                public void onResponse(NetworkResponse response) {
+                    Log.d("PICTURE_SUCCESS", "Yes");
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("PICTURE_SUCCESS", "No");
+                }
+            });
+            MySingleton.getInstance(this).addToRequestQueue(multipartRequest);
+        }
+    }
+
+    private ImageView getProfilePictureHolder()
+    {
+        View picview = getPicView();
+
+        return picview.findViewById(R.id.imageView2);
+    }
+
+    private View getPicView()
+    {
+        return getNavigationView().getHeaderView(0);
+    }
+
+    private NavigationView getNavigationView()
+    {
+        return  (NavigationView) findViewById(R.id.nav_view);
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        return image;
+    }
+
+    private void buildPart(DataOutputStream dataOutputStream, byte[] fileData, String fileName) throws IOException {
+        final String twoHyphens = "--";
+        dataOutputStream.writeBytes(twoHyphens + boundary + lineEnd);
+        dataOutputStream.writeBytes("Content-Disposition: form-data; name=\"imageFile\"; filename=\""
+                + fileName + "\"" + lineEnd);
+        dataOutputStream.writeBytes(lineEnd);
+
+        ByteArrayInputStream fileInputStream = new ByteArrayInputStream(fileData);
+        int bytesAvailable = fileInputStream.available();
+
+        int maxBufferSize = 1024 * 1024;
+        int bufferSize = Math.min(bytesAvailable, maxBufferSize);
+        byte[] buffer = new byte[bufferSize];
+
+        // read file and write it into form...
+        int bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+        while (bytesRead > 0) {
+            dataOutputStream.write(buffer, 0, bufferSize);
+            bytesAvailable = fileInputStream.available();
+            bufferSize = Math.min(bytesAvailable, maxBufferSize);
+            bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+        }
+
+        dataOutputStream.writeBytes(lineEnd);
     }
 }
