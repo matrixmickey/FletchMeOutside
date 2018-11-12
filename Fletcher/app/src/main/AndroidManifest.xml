@@ -31,6 +31,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".CreatePostActivity"
+            android:label="Create Post"
             android:parentActivityName=".MainActivity">
 
             <!-- The meta-data tag is required if you support API level 15 and lower -->
@@ -38,8 +39,24 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-        <activity android:name=".ViewCommentsActivity" />
-        <activity android:name=".CreateCommentActivity"></activity>
+        <activity android:name=".ViewCommentsActivity"
+            android:label="Comments"
+            android:launchMode="singleTop"
+            android:parentActivityName=".MainActivity">
+
+            <!-- The meta-data tag is required if you support API level 15 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+        <activity android:name=".CreateCommentActivity"
+            android:label="Create Comment"
+            android:parentActivityName=".ViewCommentsActivity">
+
+            <!-- The meta-data tag is required if you support API level 15 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ViewCommentsActivity" /></activity>
 
         <provider
             android:name="android.support.v4.content.FileProvider"
