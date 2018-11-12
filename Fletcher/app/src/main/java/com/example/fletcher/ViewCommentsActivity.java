@@ -46,7 +46,6 @@ public class ViewCommentsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, CreateCommentActivity.class);
-                intent.putExtra(LoginActivity.USERNAME, getIntent().getStringExtra(LoginActivity.USERNAME));
                 intent.putExtra(Post_ID, post.id);
                 startActivity(intent);
             }

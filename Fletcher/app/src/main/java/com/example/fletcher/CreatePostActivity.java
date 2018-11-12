@@ -28,28 +28,47 @@ public class CreatePostActivity extends AppCompatActivity {
         findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                JSONObject json = new JSONObject();
-                try {
-                    json.put("username", getIntent().getStringExtra(LoginActivity.USERNAME));
-                    json.put("postText", ((TextView)((CreatePostActivity) mContext).findViewById(R.id.editText)).getText());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
                 JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                        (Request.Method.POST, getString(R.string.create_post_url), json, new Response.Listener<JSONObject>() {
+                        (Request.Method.GET, getString(R.string.user_url), null, new Response.Listener<JSONObject>() {
 
                             @Override
                             public void onResponse(JSONObject response) {
-                                Intent intent = new Intent(mContext, MainActivity.class);
-                                startActivity(intent);
+                                try {
+                                    final String username = response.getString("username");
+                                    JSONObject json = new JSONObject();
+                                    try {
+                                        json.put("username", username);
+                                        json.put("postText", ((TextView) ((CreatePostActivity) mContext).findViewById(R.id.editText)).getText());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                    JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                                            (Request.Method.POST, getString(R.string.create_post_url), json, new Response.Listener<JSONObject>() {
+
+                                                @Override
+                                                public void onResponse(JSONObject response) {
+                                                    Intent intent = new Intent(mContext, MainActivity.class);
+                                                    startActivity(intent);
+                                                }
+                                            }, new Response.ErrorListener() {
+
+                                                @Override
+                                                public void onErrorResponse(VolleyError error) {
+                                                    Intent intent = new Intent(mContext, MainActivity.class);
+                                                    startActivity(intent);
+                                                }
+                                            });
+                                    MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
+                                }
+                                catch (JSONException e)
+                                {
+
+                                }
                             }
                         }, new Response.ErrorListener() {
 
                             @Override
                             public void onErrorResponse(VolleyError error) {
-                                Intent intent = new Intent(mContext, MainActivity.class);
-                                startActivity(intent);
                             }
                         });
                 MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);

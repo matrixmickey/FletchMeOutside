@@ -74,25 +74,10 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         final Context mContext = this;
 
-        // Get the Intent that started this activity and extract the string
-        Intent intent = getIntent();
-
-        mUsername = intent.getStringExtra(LoginActivity.USERNAME);
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-            Intent intent = new Intent(mContext, CreatePostActivity.class);
-            intent.putExtra(LoginActivity.USERNAME, mUsername);
-            startActivity(intent);
-            }
-        });
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -103,61 +88,109 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = getNavigationView();
         navigationView.setNavigationItemSelectedListener(this);
 
-        String profilePicture = intent.getStringExtra(LoginActivity.PROFILE_PICTURE);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, getString(R.string.user_url), null, new Response.Listener<JSONObject>() {
 
-        ImageView imageView = getProfilePictureHolder();
-        Picasso.with(this).load(getString(R.string.base_url) + profilePicture).into(imageView);
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            final String username = response.getString("username");
+                            final String profilePicture = response.getString("imageUrl");
+                            final String createdDate = response.getString("createdDate");
+                        StringRequest jsonObjectRequest = new StringRequest
+                                (Request.Method.GET, getString(R.string.feed_url), new Response.Listener<String>() {
 
-        View picview = getPicView();
+                                    @Override
+                                    public void onResponse(String response) {
 
-        ((TextView)picview.findViewById(R.id.textView2)).setText(mUsername);
-        String createDate = intent.getStringExtra(LoginActivity.CREATED_DATE);
-        int createDateTimeCharachter = createDate.indexOf('T');
-        ((TextView)picview.findViewById(R.id.textView)).setText("User since " + createDate.substring(0, createDateTimeCharachter));
+                                        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+                                        // Get the Intent that started this activity and extract the string
+                                        Intent intent = getIntent();
 
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        recyclerView.setHasFixedSize(true);
+                                        mUsername = username;
 
-        // use a linear layout manager
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                                        fab.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                Intent intent = new Intent(mContext, CreatePostActivity.class);
+                                                startActivity(intent);
+                                            }
+                                        });
 
-        try {
-            String feedData = intent.getStringExtra(LoginActivity.FEED_DATA);
-            JSONArray jsonArray = new JSONArray(feedData);
-            List<Post> posts = new ArrayList<Post>();
-            for (int i = 0; i < jsonArray.length(); i++)
-            {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                String postID = jsonObject.getString("_id");
-                String postText = jsonObject.getString("postText");
-                JSONObject postUser = jsonObject.getJSONObject("postUser");
-                String postUserImage = postUser.getString("imageUrl");
-                String postUsername = postUser.getString("username");
-                JSONArray commentsArray = jsonObject.getJSONArray("comments");
-                Comment[] comments = new Comment[commentsArray.length()];
-                for (int j = 0; j < commentsArray.length(); j++)
-                {
-                    JSONObject comment = commentsArray.getJSONObject(j);
-                    String commentID = comment.getString("_id");
-                    String commentText = comment.getString("commentText");
-                    JSONObject commentUser = comment.getJSONObject("commentUser");
-                    String commentUserImage = commentUser.getString("imageUrl");
-                    String commentUsername = commentUser.getString("username");
-                    comments[j] = new Comment(commentID, commentText, commentUserImage, commentUsername);
-                }
-                posts.add(new Post(postID, postText, postUserImage, postUsername, comments));
-            }
+                                        ImageView imageView = getProfilePictureHolder();
+                                        Picasso.with(mContext).load(getString(R.string.base_url) + profilePicture).into(imageView);
 
-            // specify an adapter (see also next example)
-            recyclerView.setAdapter(new MyPostRecyclerViewAdapter(posts, mUsername));
-        }
-        catch (JSONException e)
-        {
-            e.printStackTrace();
-        }
+                                        View picview = getPicView();
+
+                                        ((TextView) picview.findViewById(R.id.textView2)).setText(mUsername);
+                                        String createDate = createdDate;
+                                        int createDateTimeCharachter = createDate.indexOf('T');
+                                        ((TextView) picview.findViewById(R.id.textView)).setText("User since " + createDate.substring(0, createDateTimeCharachter));
+
+                                        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+
+                                        // use this setting to improve performance if you know that changes
+                                        // in content do not change the layout size of the RecyclerView
+                                        recyclerView.setHasFixedSize(true);
+
+                                        // use a linear layout manager
+                                        recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+
+                                        try {
+                                            String feedData = response;
+                                            JSONArray jsonArray = new JSONArray(feedData);
+                                            List<Post> posts = new ArrayList<Post>();
+                                            for (int i = 0; i < jsonArray.length(); i++) {
+                                                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                                                String postID = jsonObject.getString("_id");
+                                                String postText = jsonObject.getString("postText");
+                                                JSONObject postUser = jsonObject.getJSONObject("postUser");
+                                                String postUserImage = postUser.getString("imageUrl");
+                                                String postUsername = postUser.getString("username");
+                                                JSONArray commentsArray = jsonObject.getJSONArray("comments");
+                                                Comment[] comments = new Comment[commentsArray.length()];
+                                                for (int j = 0; j < commentsArray.length(); j++) {
+                                                    JSONObject comment = commentsArray.getJSONObject(j);
+                                                    String commentID = comment.getString("_id");
+                                                    String commentText = comment.getString("commentText");
+                                                    JSONObject commentUser = comment.getJSONObject("commentUser");
+                                                    String commentUserImage = commentUser.getString("imageUrl");
+                                                    String commentUsername = commentUser.getString("username");
+                                                    comments[j] = new Comment(commentID, commentText, commentUserImage, commentUsername);
+                                                }
+                                                posts.add(new Post(postID, postText, postUserImage, postUsername, comments));
+                                            }
+
+                                            // specify an adapter (see also next example)
+                                            recyclerView.setAdapter(new MyPostRecyclerViewAdapter(posts));
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }, new Response.ErrorListener() {
+
+                                    @Override
+                                    public void onErrorResponse(VolleyError error) {
+                                        error.getNetworkTimeMs();
+                                    }
+                                });
+                        MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
+                        }
+                        catch (JSONException e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.getNetworkTimeMs();
+                    }
+                });
+
+        MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
     }
 
     @Override
@@ -237,6 +270,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        final Context mContext = this;
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -256,12 +290,12 @@ public class MainActivity extends AppCompatActivity
             MultipartRequest multipartRequest = new MultipartRequest(getString(R.string.set_profile_pic_url) + "/" + mUsername +"/profilepic", null, mimeType, multipartBody, new Response.Listener<NetworkResponse>() {
                 @Override
                 public void onResponse(NetworkResponse response) {
-                    Log.d("PICTURE_SUCCESS", "Yes");
+                    Intent intent = new Intent(mContext, MainActivity.class);
+                    startActivity(intent);
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.d("PICTURE_SUCCESS", "No");
                 }
             });
             MySingleton.getInstance(this).addToRequestQueue(multipartRequest);

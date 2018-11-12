@@ -23,11 +23,9 @@ public class MyPostRecyclerViewAdapter extends RecyclerView.Adapter<MyPostRecycl
     public static final String POST = "com.example.fletcher.POST";
 
     private final List<Post> mValues;
-    private final String mUsername;
 
-    public MyPostRecyclerViewAdapter(List<Post> items, String username) {
+    public MyPostRecyclerViewAdapter(List<Post> items) {
         mValues = items;
-        mUsername = username;
     }
 
     @Override
@@ -49,7 +47,6 @@ public class MyPostRecyclerViewAdapter extends RecyclerView.Adapter<MyPostRecycl
             public void onClick(View view) {
                 Intent intent = new Intent(holder.mContext, ViewCommentsActivity.class);
                 intent.putExtra(POST, holder.mItem);
-                intent.putExtra(LoginActivity.USERNAME, mUsername);
                 holder.mContext.startActivity(intent);
             }
         });

@@ -128,4 +128,5 @@
     <string name="set_profile_pic_url">https://bfsharingapp.bluefletch.com/user</string>
     <string name="create_post_url">https://bfsharingapp.bluefletch.com/post</string>
     <string name="create_cooment_url">https://bfsharingapp.bluefletch.com/comment</string>
+    <string name="user_url">https://bfsharingapp.bluefletch.com/user</string>
 </resources>

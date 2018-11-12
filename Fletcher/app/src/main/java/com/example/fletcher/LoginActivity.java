@@ -36,11 +36,6 @@ import org.json.JSONObject;
  */
 public class LoginActivity extends AppCompatActivity {
 
-    public static final String PROFILE_PICTURE = "com.example.fletcher.PROFILE_PICTURE";
-    public static final String USERNAME = "com.example.fletcher.USERNAME";
-    public static final String CREATED_DATE = "com.example.fletcher.CREATED_DATE";
-    public static final String FEED_DATA = "com.example.fletcher.FEED_DATA";
-
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
@@ -125,34 +120,8 @@ public class LoginActivity extends AppCompatActivity {
 
                         @Override
                         public void onResponse(JSONObject response) {
-                            final Intent intent = new Intent(mContext, MainActivity.class);
-                            try {
-                                intent.putExtra(PROFILE_PICTURE, response.getString("imageUrl"));
-                                intent.putExtra(USERNAME, response.getString("username"));
-                                intent.putExtra(CREATED_DATE, response.getString("createdDate"));
-
-                                StringRequest jsonObjectRequest = new StringRequest
-                                        (Request.Method.GET, getString(R.string.feed_url), new Response.Listener<String>() {
-
-                                            @Override
-                                            public void onResponse(String response) {
-                                                intent.putExtra(FEED_DATA, response);
-                                                startActivity(intent);
-                                            }
-                                        }, new Response.ErrorListener() {
-
-                                            @Override
-                                            public void onErrorResponse(VolleyError error) {
-                                                Intent intent = new Intent(mContext, MainActivity.class);
-                                                startActivity(intent);
-                                            }
-                                        });
-                                MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
-                            }
-                            catch (JSONException e)
-                            {
-                                e.printStackTrace();
-                            }
+                            Intent intent = new Intent(mContext, MainActivity.class);
+                            startActivity(intent);
                         }
                     }, new Response.ErrorListener() {
 

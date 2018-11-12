@@ -27,28 +27,47 @@ public class CreateCommentActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                JSONObject json = new JSONObject();
-                try {
-                    json.put("username", getIntent().getStringExtra(LoginActivity.USERNAME));
-                    json.put("postId", getIntent().getStringExtra(ViewCommentsActivity.Post_ID));
-                    json.put("commentText", ((TextView)((CreateCommentActivity) mContext).findViewById(R.id.editText)).getText());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+
                 JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                        (Request.Method.POST, getString(R.string.create_cooment_url), json, new Response.Listener<JSONObject>() {
+                        (Request.Method.GET, getString(R.string.user_url), null, new Response.Listener<JSONObject>() {
 
                             @Override
                             public void onResponse(JSONObject response) {
-                                Intent intent = new Intent(mContext, MainActivity.class);
-                                startActivity(intent);
+                                try {
+                                    final String username = response.getString("username");
+                                    JSONObject json = new JSONObject();
+                                    try {
+                                        json.put("username", username);
+                                        json.put("postId", getIntent().getStringExtra(ViewCommentsActivity.Post_ID));
+                                        json.put("commentText", ((TextView) ((CreateCommentActivity) mContext).findViewById(R.id.editText)).getText());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                    JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                                            (Request.Method.POST, getString(R.string.create_cooment_url), json, new Response.Listener<JSONObject>() {
+
+                                                @Override
+                                                public void onResponse(JSONObject response) {
+                                                    Intent intent = new Intent(mContext, MainActivity.class);
+                                                    startActivity(intent);
+                                                }
+                                            }, new Response.ErrorListener() {
+
+                                                @Override
+                                                public void onErrorResponse(VolleyError error) {
+                                                    Intent intent = new Intent(mContext, MainActivity.class);
+                                                    startActivity(intent);
+                                                }
+                                            });
+                                    MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }, new Response.ErrorListener() {
 
                             @Override
                             public void onErrorResponse(VolleyError error) {
-                                Intent intent = new Intent(mContext, MainActivity.class);
-                                startActivity(intent);
                             }
                         });
                 MySingleton.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
